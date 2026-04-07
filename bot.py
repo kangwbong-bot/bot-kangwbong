@@ -30,7 +30,7 @@ async def on_ready():
 
     await asyncio.sleep(5)
 
-    channel_id = 1490092888539926711
+    channel_id = 1490673130824401016
     channel = bot.get_channel(channel_id)
 
     # 🎧 vào voice (retry)
