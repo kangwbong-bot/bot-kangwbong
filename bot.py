@@ -8,20 +8,21 @@ TOKEN = os.getenv("TOKEN")
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
+# ✨ chữ đẹp giữ nguyên
 base_text = "𝑲𝒂𝒏𝒈 𝑾 𝑩𝒐𝒏𝒈 ♡"
-colors = ["🔴","🟠","🟡","🟢","🔵","🟣"]
 
-def rainbow_text(text):
+# 🌈 icon siêu nhiều
+icons = [
+    "🌈","✨","💫","🔥","💖","⚡","🌟","🌀","🎧","👑",
+    "💎","🌸","🌺","🍀","🌙","☀️","⭐","🌻","🎶","🖤",
+    "🤍","💜","💙","💚","💛","🧡","❤️","💥","🎀","🧸",
+    "🦋","🐉","🍓","🍒","🥀","🌼","🌊","☁️","🧿","🔮"
+]
+
+def generate_frames(text):
     frames = []
-    for shift in range(len(colors)):
-        result = ""
-        for i, char in enumerate(text):
-            if char != " ":
-                color = colors[(i + shift) % len(colors)]
-                result += f"{color}{char}"
-            else:
-                result += " "
-        frames.append(result)
+    for icon in icons:
+        frames.append(f"{icon} {text} {icon}")
     return frames
 
 @bot.event
@@ -33,18 +34,16 @@ async def on_ready():
     channel_id = 1490673130824401016
     channel = bot.get_channel(channel_id)
 
-    # 🎧 vào voice (retry)
+    # 🎧 vào voice
     if channel:
         while True:
             try:
                 vc = await channel.connect(timeout=60, reconnect=True)
-
                 await vc.guild.change_voice_state(
                     channel=channel,
                     self_mute=True,
                     self_deaf=True
                 )
-
                 print("🎧 Joined voice")
                 break
             except Exception as e:
@@ -54,18 +53,18 @@ async def on_ready():
     guild = bot.guilds[0]
     me = guild.me
 
-    frames = rainbow_text(base_text)
+    frames = generate_frames(base_text)
 
     while True:
         try:
             for frame in frames:
                 await me.edit(nick=frame)
-                await asyncio.sleep(1)  # ⚡ tốc độ đẹp
+                await asyncio.sleep(0.8)  # ⚡ nhanh hơn
         except Exception as e:
             print("❌ Rename error:", e)
             await asyncio.sleep(5)
 
-# 🔥 chống crash Railway
+# 🔥 chống crash
 while True:
     try:
         if not TOKEN:
