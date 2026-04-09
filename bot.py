@@ -28,12 +28,12 @@ class MyBot(discord.Client):
         self.guild = self.get_guild(GUILD_ID)
         self.channel = self.guild.get_channel(VOICE_ID)
 
-        # chạy 2 loop song song
+        # chạy loop
         self.loop.create_task(self.voice_loop())
         self.loop.create_task(self.rename_loop())
 
 
-    # 🔥 LOOP GIỮ VOICE (ANTI RỚT)
+    # 🔥 GIỮ VOICE KHÔNG RỚT
     async def voice_loop(self):
         await self.wait_until_ready()
 
@@ -41,19 +41,25 @@ class MyBot(discord.Client):
             try:
                 vc = discord.utils.get(self.voice_clients, guild=self.guild)
 
-                # nếu chưa vào voice → vào
+                # nếu lỗi hoặc chưa connect → reconnect
                 if not vc or not vc.is_connected():
+                    if vc:
+                        try:
+                            await vc.disconnect(force=True)
+                        except:
+                            pass
+
                     await self.channel.connect()
                     print("🎧 Reconnected voice")
 
-                await asyncio.sleep(10)  # check mỗi 10s
+                await asyncio.sleep(10)
 
             except Exception as e:
                 print("⚠️ Voice lỗi:", e)
                 await asyncio.sleep(5)
 
 
-    # 🔥 LOOP ĐỔI TÊN (GIẢM SPAM)
+    # 🔥 ĐỔI TÊN LIÊN TỤC (ANTI 429)
     async def rename_loop(self):
         await self.wait_until_ready()
 
@@ -67,13 +73,11 @@ class MyBot(discord.Client):
 
                 await me.edit(nick=new_name)
 
-                # ⚡ delay lâu hơn để tránh 429
-                await asyncio.sleep(random.uniform(5, 7))
+                # ⚡ delay chống block
+                await asyncio.sleep(random.uniform(6, 9))
 
             except Exception as e:
                 print("⚠️ Rename lỗi:", e)
-
-                # nếu bị rate limit thì nghỉ lâu hơn
                 await asyncio.sleep(10)
 
 
