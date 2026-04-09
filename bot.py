@@ -5,8 +5,8 @@ import os
 
 TOKEN = os.getenv("TOKEN")
 
-GUILD_ID = 1453098427461402766   # 👉 ID server
-VOICE_ID = 1490673130824401016   # 👉 ID room voice
+GUILD_ID = 1453098427461402766
+VOICE_ID = 1490673130824401016
 
 icons = [
     "🌈","✨","💫","🔥","💖","⚡","🌟","🌀","🎧","👑",
@@ -19,42 +19,63 @@ intents = discord.Intents.default()
 intents.guilds = True
 intents.voice_states = True
 
+
 class MyBot(discord.Client):
+
     async def on_ready(self):
         print(f"✅ Logged in: {self.user}")
 
-        guild = self.get_guild(GUILD_ID)
-        channel = guild.get_channel(VOICE_ID)
+        self.guild = self.get_guild(GUILD_ID)
+        self.channel = self.guild.get_channel(VOICE_ID)
 
-        # 🎧 vào voice
-        try:
-            await channel.connect()
-            print("🎧 Joined voice")
-        except:
-            print("⚠️ đã ở trong voice hoặc lỗi connect")
+        # chạy 2 loop song song
+        self.loop.create_task(self.voice_loop())
+        self.loop.create_task(self.rename_loop())
 
-        # chạy loop đổi tên
-        self.loop.create_task(self.rename_loop(guild))
 
-    async def rename_loop(self, guild):
+    # 🔥 LOOP GIỮ VOICE (ANTI RỚT)
+    async def voice_loop(self):
         await self.wait_until_ready()
-        me = guild.get_member(self.user.id)
 
-        while True:
+        while not self.is_closed():
             try:
+                vc = discord.utils.get(self.voice_clients, guild=self.guild)
+
+                # nếu chưa vào voice → vào
+                if not vc or not vc.is_connected():
+                    await self.channel.connect()
+                    print("🎧 Reconnected voice")
+
+                await asyncio.sleep(10)  # check mỗi 10s
+
+            except Exception as e:
+                print("⚠️ Voice lỗi:", e)
+                await asyncio.sleep(5)
+
+
+    # 🔥 LOOP ĐỔI TÊN (GIẢM SPAM)
+    async def rename_loop(self):
+        await self.wait_until_ready()
+
+        while not self.is_closed():
+            try:
+                guild = self.guild
+                me = guild.get_member(self.user.id)
+
                 icon = random.choice(icons)
                 new_name = f"{icon} {NAME} {icon}"
 
                 await me.edit(nick=new_name)
 
-                # ⚡ delay chuẩn né block
-                await asyncio.sleep(random.uniform(2.6, 3.3))
+                # ⚡ delay lâu hơn để tránh 429
+                await asyncio.sleep(random.uniform(5, 7))
 
             except Exception as e:
                 print("⚠️ Rename lỗi:", e)
 
-                # nếu bị chặn thì nghỉ ngắn thôi
-                await asyncio.sleep(5)
+                # nếu bị rate limit thì nghỉ lâu hơn
+                await asyncio.sleep(10)
+
 
 bot = MyBot(intents=intents)
 
@@ -65,5 +86,7 @@ while True:
         else:
             print("🚀 Bot đang chạy...")
             bot.run(TOKEN)
+
     except Exception as e:
         print("💥 Crash, restart:", e)
+        asyncio.sleep(5)
