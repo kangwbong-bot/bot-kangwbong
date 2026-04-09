@@ -1,96 +1,77 @@
 import discord
-import asyncio
-import random
+from discord.ext import commands
 import os
+import asyncio
 
 TOKEN = os.getenv("TOKEN")
 
-GUILD_ID = 1453098427461402766
-VOICE_ID = 1490673130824401016
+intents = discord.Intents.all()
+bot = commands.Bot(command_prefix="!", intents=intents)
 
+# ✨ chữ đẹp giữ nguyên
+base_text = "♡𝑲𝒂𝒏𝒈 𝑾 𝑩𝒐𝒏𝒈♡"
+
+# 🌈 icon siêu nhiều
 icons = [
     "🌈","✨","💫","🔥","💖","⚡","🌟","🌀","🎧","👑",
-    "💎","🌸","🌙","⭐","🖤","🤍","💜","💙","💚","💛"
+    "💎","🌸","🌺","🍀","🌙","☀️","⭐","🌻","🎶","🖤",
+    "🤍","💜","💙","💚","💛","🧡","❤️","💥","🎀","🧸",
+    "🦋","🐉","🍓","🍒","🥀","🌼","🌊","☁️","🧿","🔮"
 ]
 
-NAME = "♡𝑲𝒂𝒏𝒈 𝑾 𝑩𝒐𝒏𝒈♡"
+def generate_frames(text):
+    frames = []
+    for icon in icons:
+        frames.append(f"{icon} {text} {icon}")
+    return frames
 
-intents = discord.Intents.default()
-intents.guilds = True
-intents.voice_states = True
+@bot.event
+async def on_ready():
+    print(f"✅ Logged in: {bot.user}")
 
+    await asyncio.sleep(5)
 
-class MyBot(discord.Client):
+    channel_id = 1490673130824401016
+    channel = bot.get_channel(channel_id)
 
-    async def on_ready(self):
-        print(f"✅ Logged in: {self.user}")
-
-        self.guild = self.get_guild(GUILD_ID)
-        self.channel = self.guild.get_channel(VOICE_ID)
-
-        # chạy loop
-        self.loop.create_task(self.voice_loop())
-        self.loop.create_task(self.rename_loop())
-
-
-    # 🔥 GIỮ VOICE KHÔNG RỚT
-    async def voice_loop(self):
-        await self.wait_until_ready()
-
-        while not self.is_closed():
+    # 🎧 vào voice
+    if channel:
+        while True:
             try:
-                vc = discord.utils.get(self.voice_clients, guild=self.guild)
-
-                # nếu lỗi hoặc chưa connect → reconnect
-                if not vc or not vc.is_connected():
-                    if vc:
-                        try:
-                            await vc.disconnect(force=True)
-                        except:
-                            pass
-
-                    await self.channel.connect()
-                    print("🎧 Reconnected voice")
-
-                await asyncio.sleep(10)
-
+                vc = await channel.connect(timeout=60, reconnect=True)
+                await vc.guild.change_voice_state(
+                    channel=channel,
+                    self_mute=True,
+                    self_deaf=True
+                )
+                print("🎧 Joined voice")
+                break
             except Exception as e:
-                print("⚠️ Voice lỗi:", e)
+                print("❌ Voice error:", e)
                 await asyncio.sleep(5)
 
+    guild = bot.guilds[0]
+    me = guild.me
 
-    # 🔥 ĐỔI TÊN LIÊN TỤC (ANTI 429)
-    async def rename_loop(self):
-        await self.wait_until_ready()
+    frames = generate_frames(base_text)
 
-        while not self.is_closed():
-            try:
-                guild = self.guild
-                me = guild.get_member(self.user.id)
+    while True:
+        try:
+            for frame in frames:
+                await me.edit(nick=frame)
+                await asyncio.sleep(0.8)  # ⚡ nhanh hơn
+        except Exception as e:
+            print("❌ Rename error:", e)
+            await asyncio.sleep(5)
 
-                icon = random.choice(icons)
-                new_name = f"{icon} {NAME} {icon}"
-
-                await me.edit(nick=new_name)
-
-                # ⚡ delay chống block
-                await asyncio.sleep(random.uniform(6, 9))
-
-            except Exception as e:
-                print("⚠️ Rename lỗi:", e)
-                await asyncio.sleep(10)
-
-
-bot = MyBot(intents=intents)
-
+# 🔥 chống crash
 while True:
     try:
         if not TOKEN:
-            print("❌ thiếu TOKEN")
+            print("❌ Missing TOKEN")
         else:
-            print("🚀 Bot đang chạy...")
+            print("🚀 Running bot...")
             bot.run(TOKEN)
-
     except Exception as e:
-        print("💥 Crash, restart:", e)
-        asyncio.sleep(5)
+        print("💥 Crash, restarting:", e)
+        
