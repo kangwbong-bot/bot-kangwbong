@@ -13,7 +13,7 @@ icons = [
     "💎","🌸","🌙","⭐","🖤","🤍","💜","💙","💚","💛"
 ]
 
-NAME = "𝑲𝒂𝒏𝒈 𝑾 𝑩𝒐𝒏𝒈 ♡"
+NAME = "♡𝑲𝒂𝒏𝒈 𝑾 𝑩𝒐𝒏𝒈♡"
 
 intents = discord.Intents.default()
 intents.guilds = True
